@@ -148,7 +148,7 @@ function protected_pages_configure_submit_callback($form, &$form_state) {
       'path' => check_plain($form_state['values']['path']),
     ))->execute();
 
-    drupal_set_message('The protected page settings has been successfully saved.');
+    drupal_set_message(t('The protected page settings have been successfully saved.'));
     $form['rules_list']['pages_table']['#markup'] = protected_pages_get_pages_list();
     $form['rules_list']['path']['#value'] = '';
   }
@@ -236,7 +236,7 @@ function protected_pages_edit_submit($form, &$form_state) {
       ->fields($values)
       ->condition('pid', $form_state['values']['pid'])
       ->execute();
-  drupal_set_message('The protected page settings has been successfully saved.');
+  drupal_set_message(t('The protected page settings have been successfully saved.'));
   $form_state['redirect'] = 'admin/config/system/protected_pages';
 }
 
@@ -505,7 +505,7 @@ function protected_pages_validate_integer_positive($element, &$form_state) {
 }
 
 /**
- * Custom submit function encrypt password and deleting non-useful variable. 
+ * Custom submit function encrypt password and deleting non-useful variable.
  */
 function _protected_pages_settings_submit($form, &$form_state) {
   $passwd = $form_state['values']['protected_pages_global_password_field'];
