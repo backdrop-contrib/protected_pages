@@ -1,37 +1,47 @@
 <?php
-
 /**
  * @file
- * This module allows you to protect any page of your website by secure 
+ * This module allows you to protect any page of your website by secure
  * password. You can enter urls of pages to protect and set password per page.
  * Admin (uid = 1) or user with bypass protection permission can view page.
  */
 
 /**
- * Implements hook_permission(). 
+ * Implemtns hook_config_info().
+ */
+function protected_pages_config_info() {
+  $prefixes['protected_pages.settings'] = array(
+    'label' => t('Protected Pages Settings'),
+    'group' => t('Configuration'),
+  );
+
+  return $prefixes;
+}
+
+/**
+ * Implements hook_permission().
  */
 function protected_pages_permission() {
   return array(
+    'administer protected pages configuration' => array(
+      'title' => t('Administer protected pages'),
+      'description' => t('Adjust settings for protected pages.'),
+    ),
     'bypass pages password protection' => array(
-      'title' => t('bypass pages password protection'),
-      'description' => t('Bypass password protection of protected pages'),
+      'title' => t('Bypass pages password protection'),
+      'description' => t('Access protected pages without providing a password.'),
     ),
     'access protected page password screen' => array(
-      'title' => t('access protected page password screen'),
-      'description' => t('Access protected page password screen.'),
-    ),
-    'administer protected pages configuration' => array(
-      'title' => t('access protected pages configuration screen'),
-      'description' => t('Access protected pages configuration screen.'),
+      'title' => t('access protected page'),
+      'description' => t('Access the password screen for a protected page.'),
     ),
   );
 }
 
 /**
- * Implements hook_menu().  
+ * Implements hook_menu().
  */
 function protected_pages_menu() {
-  $items = array();
 
   $items['admin/config/system/protected_pages'] = array(
     'title' => 'Protected Pages',
@@ -89,6 +99,7 @@ function protected_pages_menu() {
     'type' => MENU_CALLBACK,
     'file' => 'protected_pages.inc',
   );
+
   return $items;
 }
 
@@ -98,9 +109,6 @@ function protected_pages_menu() {
 function protected_pages_access_callback() {
   global $user;
 
-  if ($user->uid == 1) {
-    return TRUE;
-  }
   if (!user_access('access protected page password screen')) {
     return FALSE;
   }
@@ -113,7 +121,7 @@ function protected_pages_access_callback() {
 }
 
 /**
- * Implements hook_init(). 
+ * Implements hook_init().
  */
 function protected_pages_init() {
   if (user_access('bypass pages password protection')) {
@@ -157,11 +165,11 @@ function protected_pages_init() {
 function protected_pages_is_page_locked($current_path, $normal_path) {
 
   $pid = db_select('protected_pages')
-      ->fields('protected_pages', array('pid'))
-      ->condition(db_or()->condition('path', $current_path)->condition('path', $normal_path))
-      ->range(0, 1)
-      ->execute()
-      ->fetchField();
+    ->fields('protected_pages', array('pid'))
+    ->condition(db_or()->condition('path', $current_path)->condition('path', $normal_path))
+    ->range(0, 1)
+    ->execute()
+    ->fetchField();
 
   if (isset($_SESSION['_protected_page']['passwords'][$pid]['expire_time'])) {
     if (time() >= $_SESSION['_protected_page']['passwords'][$pid]['expire_time']) {
@@ -169,9 +177,11 @@ function protected_pages_is_page_locked($current_path, $normal_path) {
       unset($_SESSION['_protected_page']['passwords'][$pid]['expire_time']);
     }
   }
+
   if (isset($_SESSION['_protected_page']['passwords'][$pid]['request_time'])) {
     return FALSE;
   }
+
   return $pid;
 }
 
@@ -179,21 +189,21 @@ function protected_pages_is_page_locked($current_path, $normal_path) {
  * Title Callback for enter password page.
  */
 function protected_pages_get_title() {
-  return check_plain(variable_get('protected_pages_title', t('Protected Page -- Enter password')));
+  return check_plain(config_get('protected_pages.settings', 'protected_pages_title'));
 }
 
 /**
- * The default email subject. 
+ * The default email subject.
  */
 function protected_pages_email_subject() {
-  return t("Please visit this new page");
+  return t('Please visit this new page');
 }
 
 /**
- * The default email body. 
+ * The default email body.
  */
 function protected_pages_email_body() {
-  return t("Dear friend,
+  return t('Dear friend,
 
 I just created a new page on my website and wanted to invite you to
 visit. The page is protected by password. Please find the details below:-
@@ -202,19 +212,19 @@ Page Url = [protected-page-url]
 Page Password = password here
 
 Thank you.
-[site-name]"
+[site-name]'
   );
 }
 
 /**
- * Implements hook_mail(). 
+ * Implements hook_mail().
  */
 function protected_pages_mail($key, &$message, $params) {
   switch ($key) {
     case 'protected_pages_details_mail':
       $tokens = array('[protected-page-url]', '[site-name]');
       $replcements = array(
-        $params['protected_page_url'], check_plain(variable_get('site_name', '')),
+        $params['protected_page_url'], check_plain(config_get('system.core', 'site_name')),
       );
 
       $body = str_replace($tokens, $replcements, $params['body']);

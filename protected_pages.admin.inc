@@ -1,5 +1,4 @@
 <?php
-
 /**
  * @file
  * Provides page callbacks for configuration page.
@@ -45,6 +44,7 @@ function protected_pages_configure($form, &$form_state) {
   $form['rules_list']['pages_table'] = array(
     '#markup' => protected_pages_get_pages_list(),
   );
+
   return $form;
 }
 
@@ -93,21 +93,19 @@ function protected_pages_get_pages_list() {
     $count++;
   }
 
-  $output = theme('table', array(
-    'header' => $header,
-    'rows' => $rows,
-    "attributes" => array('width' => "500"),
-    "sticky" => TRUE,
-    "caption" => "",
-    "colgroups" => array(),
-    "empty" => t("No record found!"),
-      )
+  $output = theme('table',
+    array(
+      'header' => $header,
+      'rows' => $rows,
+      "attributes" => array('width' => "500"),
+      "sticky" => TRUE,
+      "caption" => "",
+      "colgroups" => array(),
+      "empty" => t("No record found!"),
+    ),
   );
 
-  $output .= theme('pager', array(
-    'tags' => array(),
-      )
-  );
+  $output .= theme('pager', array('tags' => array()));
 
   return $output;
 }
@@ -277,6 +275,7 @@ function protected_pages_delete_confirm_submit($form, &$form_state) {
  * Callback function for send protected pages details email form.
  */
 function protected_pages_send_email($form, &$form_state, $pid) {
+  $config = config('protected_pages.settings');
   $destination = drupal_get_destination();
   $form['send_email_box'] = array(
     '#type' => 'fieldset',
@@ -303,7 +302,7 @@ function protected_pages_send_email($form, &$form_state, $pid) {
   $form['send_email_box']['subject'] = array(
     '#type' => 'textfield',
     '#title' => t('Subject'),
-    '#default_value' => variable_get('protected_pages_email_subject', protected_pages_email_subject()),
+    '#default_value' => $config->get('protected_pages_email_subject'),
     '#description' => t('Enter subject of email.'),
     '#required' => TRUE,
   );
@@ -311,8 +310,8 @@ function protected_pages_send_email($form, &$form_state, $pid) {
     '#type' => 'textarea',
     '#title' => t('Email Body'),
     '#rows' => 15,
-    '#default_value' => variable_get('protected_pages_email_body', protected_pages_email_body()),
-    '#description' => t('Enter the body of the email. Only [protected-page-url] and [site-name] tokens are available. 
+    '#default_value' => $config->get('protected_pages_email_body'),
+    '#description' => t('Enter the body of the email. Only [protected-page-url] and [site-name] tokens are available.
       Since password is encrypted, therefore we can not provide it by token.'),
     '#required' => TRUE,
   );
@@ -362,7 +361,7 @@ function protected_pages_send_email_submit($form, &$form_state) {
   $module = 'protected_pages';
   $key = 'protected_pages_details_mail';
   $to = $form_state['values']['recipents'];
-  $from = variable_get('site_mail');
+  $from = config_get('system.core', 'site_mail');
   $language = language_default();
   $send = TRUE;
   $params = array();
@@ -379,6 +378,10 @@ function protected_pages_send_email_submit($form, &$form_state) {
  * Callback function for protected pages settings.
  */
 function protected_pages_settings() {
+  $config = config('protected_pages.settings');
+
+  $form['#config'] = 'protected_pages.settings';
+
   $form['protected_pages_password_fieldset'] = array(
     '#type' => 'fieldset',
     '#title' => t('Protected Pages Password Settings'),
@@ -386,8 +389,8 @@ function protected_pages_settings() {
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
   );
-  $global_password_help_text = array();
 
+  $global_password_help_text = array();
   $global_password_help_text[] = t('Allow per page password = Only per page password will be accepted. Global password will not be accepted.');
   $global_password_help_text[] = t('Allow per page password or Global password = Per page  password and global password both will be accepted.');
   $global_password_help_text[] = t('Allow Only Global = Only global password will be accepted for each protected page.');
@@ -395,7 +398,7 @@ function protected_pages_settings() {
   $form['protected_pages_password_fieldset']['protected_pages_user_global_password'] = array(
     '#type' => 'select',
     '#title' => t('Global Password Setting'),
-    '#default_value' => variable_get('protected_pages_user_global_password', 'per_page_or_global'),
+    '#default_value' => $config->get('protected_pages_user_global_password'),
     '#options' => array(
       'per_page_password' => t('Allow per page password'),
       'per_page_or_global' => t('Allow per page password or Global password'),
@@ -404,28 +407,26 @@ function protected_pages_settings() {
     '#description' => t('Please select the appropriate option for protected pages handling.') .
     '<br />' . theme('item_list', array('items' => $global_password_help_text)),
   );
-
   $form['protected_pages_password_fieldset']['protected_pages_global_password_field'] = array(
     '#type' => 'password_confirm',
     '#title' => t('Global Password'),
-    '#description' => t('The default password for all protected pages. This 
-      password is necessary if you select the previous checkbox "Allow per page 
+    '#description' => t('The default password for all protected pages. This
+      password is necessary if you select the previous checkbox "Allow per page
       password or Global password" or "Allow Only Global" options above.'),
   );
   $form['protected_pages_password_fieldset']['protected_pages_session_expire_time'] = array(
     '#type' => 'textfield',
     '#title' => t('Session Expire Time'),
-    '#description' => t('When user enters password a session is created. 
-      The node will be accessible until session expire. Once session expires, 
-      user will need to enter password again. The default session expire time 
+    '#description' => t('When user enters password a session is created.
+      The node will be accessible until session expire. Once session expires,
+      user will need to enter password again. The default session expire time
       is 0 (unlimited).'),
-    '#default_value' => variable_get('protected_pages_session_expire_time', 0),
+    '#default_value' => $config->get('protected_pages_session_expire_time'),
     '#required' => TRUE,
     '#size' => 10,
     '#element_validate' => array('protected_pages_validate_integer_positive'),
     '#field_suffix' => t('in minutes'),
   );
-
   $form['protected_pages_email_fieldset'] = array(
     '#type' => 'fieldset',
     '#title' => t('Protected pages email settings'),
@@ -433,20 +434,18 @@ function protected_pages_settings() {
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
   );
-
   $form['protected_pages_email_fieldset']['protected_pages_email_subject'] = array(
     '#type' => 'textfield',
     '#title' => t('Email subject'),
-    '#default_value' => variable_get('protected_pages_email_subject', protected_pages_email_subject()),
+    '#default_value' => $config->get('protected_pages_email_subject'),
     '#description' => t('Enter the subject of the email.'),
   );
-
   $form['protected_pages_email_fieldset']['protected_pages_email_body'] = array(
     '#type' => 'textarea',
     '#title' => t('Email content'),
     '#rows' => 15,
-    '#default_value' => variable_get('protected_pages_email_body', protected_pages_email_body()),
-    '#description' => t('Enter the body of the email. Only [protected-page-url] and [site-name] tokens are available. 
+    '#default_value' => $config->get('protected_pages_email_body'),
+    '#description' => t('Enter the body of the email. Only [protected-page-url] and [site-name] tokens are available.
       Since password is encrypted, therefore we can not provide it by token.'),
   );
 
@@ -457,40 +456,39 @@ function protected_pages_settings() {
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
   );
-
   $form['protected_pages_other_fieldset']['protected_pages_title'] = array(
     '#type' => 'textfield',
     '#title' => t('Password page title'),
-    '#default_value' => variable_get('protected_pages_title', t('Protected Page -- Enter password')),
+    '#default_value' => $config->get('protected_pages_title'),
     '#description' => t('Enter the title of the protected page.'),
   );
-
   $form['protected_pages_other_fieldset']['protected_pages_description'] = array(
     '#type' => 'textarea',
     '#title' => t('Password page description (inside the field set)'),
-    '#default_value' => variable_get('protected_pages_description', t('The page you are trying to view is password protected. Please enter the password below to proceed.')),
+    '#default_value' => $config->get('protected_pages_description'),
     '#description' => t('Enter specific description for the protected page. This description is displayed inside the fieldset. HTML is accepted.'),
   );
-
   $form['protected_pages_other_fieldset']['protected_pages_password_label'] = array(
     '#type' => 'textfield',
     '#title' => t('Password field label'),
-    '#default_value' => variable_get('protected_pages_password_label', t('Enter Password')),
+    '#default_value' => $config->get('protected_pages_password_label'),
     '#description' => t('Enter the text for the password field label.'),
   );
   $form['protected_pages_other_fieldset']['protected_pages_submit_button_text'] = array(
     '#type' => 'textfield',
     '#title' => t('Submit Button Text'),
-    '#default_value' => variable_get('protected_pages_submit_button_text', t('Authenticate')),
+    '#default_value' => $config->get('protected_pages_submit_button_text'),
     '#description' => t('Enter the text for the submit button of enter password form.'),
   );
   $form['protected_pages_other_fieldset']['protected_pages_incorrect_password_msg'] = array(
     '#type' => 'textarea',
     '#title' => t('Incorrect Password Error Text'),
-    '#default_value' => variable_get('protected_pages_incorrect_password_msg', t('Incorrect password!')),
+    '#default_value' => $config->get('protected_pages_incorrect_password_msg'),
     '#description' => t('This error text will appear if someone enters wrong password in "Enter password screen".'),
   );
+
   $form['#submit'][] = '_protected_pages_settings_submit';
+
   return system_settings_form($form);
 }
 
@@ -510,8 +508,10 @@ function protected_pages_validate_integer_positive($element, &$form_state) {
 function _protected_pages_settings_submit($form, &$form_state) {
   $passwd = $form_state['values']['protected_pages_global_password_field'];
   if ($passwd) {
-    variable_set('protected_pages_global_password', sha1($passwd));
+    $config = config('protected_pages.settings');
+    $config->set('protected_pages_global_password', sha1($passwd));
     unset($form_state['values']['protected_pages_global_password_field']);
-    variable_del('protected_pages_global_password_field');
+    $config->clear('protected_pages_global_password_field');
+    $config->save();
   }
 }

@@ -1,0 +1,13 @@
+{
+    "_config_name": "protected_pages.settings",
+    "protected_pages_user_global_password": "per_page_password",
+    "protected_pages_global_password_field": "",
+    "protected_pages_session_expire_time": "0",
+    "protected_pages_email_subject": "Please visit this new page",
+    "protected_pages_email_body": "Dear friend,\r\n\r\nI just created a new page on my website and wanted to invite you to\r\nvisit. The page is protected by password. Please find the details below:-\r\n\r\nPage Url = [protected-page-url]\r\nPage Password = password here\r\n\r\nThank you.\r\n[site-name]'",
+    "protected_pages_title": "Protected Page -- Enter password",
+    "protected_pages_description": "The page you are trying to view is password protected. Please enter the password below to proceed.",
+    "protected_pages_password_label": "Enter Password",
+    "protected_pages_submit_button_text": "Authenticate",
+    "protected_pages_incorrect_password_msg": "Incorrect password!"
+}

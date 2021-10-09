@@ -1,12 +1,11 @@
 <?php
-
 /**
  * @file
  * Protected Pages install file.
  */
 
 /**
- * Implements hook_schema(). 
+ * Implements hook_schema().
  */
 function protected_pages_schema() {
   $schema['protected_pages'] = array(
@@ -36,23 +35,6 @@ function protected_pages_schema() {
     'primary key' => array('pid'),
   );
   return $schema;
-}
-
-/**
- * Implements hook_uninstall().
- */
-function protected_pages_uninstall() {
-  variable_del('protected_pages_user_global_password');
-  variable_del('protected_pages_session_expire_time');
-  variable_del('protected_pages_email_subject');
-  variable_del('protected_pages_email_body');
-  variable_del('protected_pages_title');
-  variable_del('protected_pages_description');
-  variable_del('protected_pages_password_label');
-  variable_del('protected_pages_submit_button_text');
-  variable_del('protected_pages_global_password');
-  variable_del('protected_pages_global_password_field');
-  variable_del('protected_pages_incorrect_password_msg');
 }
 
 /**

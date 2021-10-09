@@ -1,5 +1,4 @@
 <?php
-
 /**
  * @file
  * Provides page callbacks for enter password page.
@@ -9,6 +8,7 @@
  * Callback function for enter password page.
  */
 function protected_pages_enter_password($form, &$form_state) {
+  $config = config('protected_pages.settings');
   if (!isset($_GET['destination']) || empty($_GET['protected_page']) || !is_numeric($_GET['protected_page'])) {
     watchdog('protected_page', 'Illegal call to /protected-page', array(), WATCHDOG_WARNING);
     drupal_access_denied();
@@ -27,13 +27,13 @@ function protected_pages_enter_password($form, &$form_state) {
   }
   $form['protected_page_enter_password'] = array(
     '#type' => 'fieldset',
-    '#description' => variable_get('protected_pages_description', t('The page you are trying to view is password protected. Please enter the password below to proceed.')),
+    '#description' => $config->get('protected_pages_description'),
     '#collapsible' => FALSE,
   );
 
   $form['protected_page_enter_password']['password'] = array(
     '#type' => 'password',
-    '#title' => variable_get('protected_pages_password_label', t('Enter Password')),
+    '#title' => $config->get('protected_pages_password_label'),
     '#size' => 20,
     '#required' => TRUE,
   );
@@ -45,7 +45,7 @@ function protected_pages_enter_password($form, &$form_state) {
 
   $form['protected_page_enter_password']['submit'] = array(
     '#type' => 'submit',
-    '#value' => variable_get('protected_pages_submit_button_text', t('Authenticate')),
+    '#value' => $config->get('protected_pages_submit_button_text'),
   );
 
   return $form;
@@ -55,8 +55,10 @@ function protected_pages_enter_password($form, &$form_state) {
  * Implements hook_validate().
  */
 function protected_pages_enter_password_validate($form, &$form_state) {
+  $config = config('protected_pages.settings');
+
   $password = sha1(trim(check_plain($form_state['values']['password'])));
-  $global_password_setting = variable_get('protected_pages_user_global_password', 'per_page_or_global');
+  $global_password_setting = $config->get('protected_pages_user_global_password');
   if ($global_password_setting == 'per_page_password') {
     $pid = db_select('protected_pages')
         ->fields('protected_pages', array('pid'))
@@ -67,7 +69,7 @@ function protected_pages_enter_password_validate($form, &$form_state) {
         ->fetchField();
     if (!$pid) {
 
-      form_set_error('password', variable_get('protected_pages_incorrect_password_msg', t('Incorrect password!')));
+      form_set_error('password', $config->get('protected_pages_incorrect_password_msg'));
     }
   }
   elseif ($global_password_setting == 'per_page_or_global') {
@@ -79,15 +81,15 @@ function protected_pages_enter_password_validate($form, &$form_state) {
         ->execute()
         ->fetchField();
 
-    $global_password = variable_get('protected_pages_global_password', '');
+    $global_password = $config->get('protected_pages_global_password');
     if (!$pid && $global_password != $password) {
-      form_set_error('password', variable_get('protected_pages_incorrect_password_msg', t('Incorrect password!')));
+      form_set_error('password', $config->get('protected_pages_incorrect_password_msg'));
     }
   }
   else {
-    $global_password = variable_get('protected_pages_global_password', '');
+    $global_password = $config->get('protected_pages_global_password');
     if ($global_password != $password) {
-      form_set_error('password', variable_get('protected_pages_incorrect_password_msg', t('Incorrect password!')));
+      form_set_error('password', $config->get('protected_pages_incorrect_password_msg'));
     }
   }
 }
@@ -97,7 +99,7 @@ function protected_pages_enter_password_validate($form, &$form_state) {
  */
 function protected_pages_enter_password_submit($form, &$form_state) {
   $_SESSION['_protected_page']['passwords'][$form_state['values']['protected_page_pid']]['request_time'] = REQUEST_TIME;
-  $session_expire_time = variable_get('protected_pages_session_expire_time', 0);
+  $session_expire_time = config_get('protected_pages.settings', 'protected_pages_session_expire_time');
   if ($session_expire_time) {
     $_SESSION['_protected_page']['passwords'][$form_state['values']['protected_page_pid']]['expire_time'] = strtotime("+{$session_expire_time} minutes");
   }
