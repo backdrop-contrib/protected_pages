@@ -1,5 +1,6 @@
+type = module
 name = Protected Pages
 description = Allow you to protect pages by secure password.
-core = 7.x
+backdrop = 1.x
 package = Access
 configure = admin/config/system/protected_pages/settings
