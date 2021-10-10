@@ -25,15 +25,13 @@ function protected_pages_permission() {
   return array(
     'administer protected pages configuration' => array(
       'title' => t('Administer protected pages'),
-      'description' => t('Adjust settings for protected pages.'),
+      'description' => t('Define pages and passwords. Adjust the protected pages configuration.'),
     ),
     'bypass pages password protection' => array(
-      'title' => t('Bypass pages password protection'),
-      'description' => t('Access protected pages without providing a password.'),
+      'title' => t('Access protected pages without providing a password'),
     ),
     'access protected page password screen' => array(
-      'title' => t('access protected page'),
-      'description' => t('Access the password screen for a protected page.'),
+      'title' => t('Access password screen for protected pages'),
     ),
   );
 }
