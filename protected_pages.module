@@ -54,7 +54,7 @@ function protected_pages_menu() {
     'type' => MENU_DEFAULT_LOCAL_TASK,
   );
   $items['admin/config/system/protected_pages/settings'] = array(
-    'title' => 'Settings',
+    'title' => 'Protected Pages settings',
     'page callback' => 'backdrop_get_form',
     'page arguments' => array('protected_pages_settings'),
     'access arguments' => array('administer protected pages configuration'),
@@ -63,7 +63,7 @@ function protected_pages_menu() {
   );
 
   $items['admin/config/system/protected_pages/%/edit'] = array(
-    'title' => 'Edit Protected Pages',
+    'title' => 'Edit Protected Page',
     'page callback' => 'backdrop_get_form',
     'page arguments' => array('protected_pages_edit', 4),
     'access arguments' => array('administer protected pages configuration'),
@@ -71,7 +71,7 @@ function protected_pages_menu() {
   );
 
   $items['admin/config/system/protected_pages/%/delete'] = array(
-    'title' => 'Delete Protected Pages',
+    'title' => 'Delete Protected Page',
     'page callback' => 'backdrop_get_form',
     'page arguments' => array('protected_pages_delete_confirm', 4),
     'access arguments' => array('administer protected pages configuration'),
@@ -80,7 +80,7 @@ function protected_pages_menu() {
   );
 
   $items['admin/config/system/protected_pages/%/send_email'] = array(
-    'title' => 'Send protected pages details to user by email',
+    'title' => 'Send protected page details by email',
     'page callback' => 'backdrop_get_form',
     'page arguments' => array('protected_pages_send_email', 4),
     'access arguments' => array('administer protected pages configuration'),
@@ -90,7 +90,7 @@ function protected_pages_menu() {
   $items['protected-page'] = array(
     'title' => 'Protected page - Enter Password',
     'title callback' => 'protected_pages_get_title',
-    'description' => 'Here you can enter the password for protected pages',
+    'description' => 'Enter the password to view this page',
     'page callback' => 'backdrop_get_form',
     'page arguments' => array('protected_pages_enter_password'),
     'access callback' => 'protected_pages_access_callback',
