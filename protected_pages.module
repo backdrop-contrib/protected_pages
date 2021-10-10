@@ -43,8 +43,8 @@ function protected_pages_menu() {
 
   $items['admin/config/system/protected_pages'] = array(
     'title' => 'Protected Pages',
-    'description' => 'Configure protected pages setting.',
-    'page callback' => 'drupal_get_form',
+    'description' => 'Configure protected pages.',
+    'page callback' => 'backdrop_get_form',
     'page arguments' => array('protected_pages_configure'),
     'access arguments' => array('administer protected pages configuration'),
     'file' => 'protected_pages.admin.inc',
@@ -55,7 +55,7 @@ function protected_pages_menu() {
   );
   $items['admin/config/system/protected_pages/settings'] = array(
     'title' => 'Settings',
-    'page callback' => 'drupal_get_form',
+    'page callback' => 'backdrop_get_form',
     'page arguments' => array('protected_pages_settings'),
     'access arguments' => array('administer protected pages configuration'),
     'type' => MENU_LOCAL_TASK,
@@ -64,7 +64,7 @@ function protected_pages_menu() {
 
   $items['admin/config/system/protected_pages/%/edit'] = array(
     'title' => 'Edit Protected Pages',
-    'page callback' => 'drupal_get_form',
+    'page callback' => 'backdrop_get_form',
     'page arguments' => array('protected_pages_edit', 4),
     'access arguments' => array('administer protected pages configuration'),
     'file' => 'protected_pages.admin.inc',
@@ -72,7 +72,7 @@ function protected_pages_menu() {
 
   $items['admin/config/system/protected_pages/%/delete'] = array(
     'title' => 'Delete Protected Pages',
-    'page callback' => 'drupal_get_form',
+    'page callback' => 'backdrop_get_form',
     'page arguments' => array('protected_pages_delete_confirm', 4),
     'access arguments' => array('administer protected pages configuration'),
     'type' => MENU_CALLBACK,
@@ -81,7 +81,7 @@ function protected_pages_menu() {
 
   $items['admin/config/system/protected_pages/%/send_email'] = array(
     'title' => 'Send protected pages details to user by email',
-    'page callback' => 'drupal_get_form',
+    'page callback' => 'backdrop_get_form',
     'page arguments' => array('protected_pages_send_email', 4),
     'access arguments' => array('administer protected pages configuration'),
     'file' => 'protected_pages.admin.inc',
@@ -91,7 +91,7 @@ function protected_pages_menu() {
     'title' => 'Protected page - Enter Password',
     'title callback' => 'protected_pages_get_title',
     'description' => 'Here you can enter the password for protected pages',
-    'page callback' => 'drupal_get_form',
+    'page callback' => 'backdrop_get_form',
     'page arguments' => array('protected_pages_enter_password'),
     'access callback' => 'protected_pages_access_callback',
     'type' => MENU_CALLBACK,
@@ -126,32 +126,32 @@ function protected_pages_init() {
     return;
   }
 
-  $current_path = drupal_strtolower(drupal_get_path_alias($_GET['q']));
-  $normal_path = drupal_get_normal_path($current_path);
+  $current_path = backdrop_strtolower(backdrop_get_path_alias($_GET['q']));
+  $normal_path = backdrop_get_normal_path($current_path);
 
   $pid = protected_pages_is_page_locked($current_path, $normal_path);
   if ($pid) {
-    $query = drupal_get_destination();
+    $query = backdrop_get_destination();
     if (!empty($_SERVER['HTTP_REFERER'])) {
       $query['back'] = urlencode($current_path);
     }
     $query['protected_page'] = $pid;
-    drupal_goto('protected-page', array('query' => $query));
+    backdrop_goto('protected-page', array('query' => $query));
   }
   else {
     $page_node = menu_get_object();
     if (isset($page_node->nid) && is_numeric($page_node->nid)) {
       $path_to_node = 'node/' . $page_node->nid;
-      $current_path = drupal_strtolower(drupal_get_path_alias($path_to_node));
-      $normal_path = drupal_get_normal_path($current_path);
+      $current_path = backdrop_strtolower(backdrop_get_path_alias($path_to_node));
+      $normal_path = backdrop_get_normal_path($current_path);
       $pid = protected_pages_is_page_locked($current_path, $normal_path);
       if ($pid) {
-        $query = drupal_get_destination();
+        $query = backdrop_get_destination();
         if (!empty($_SERVER['HTTP_REFERER'])) {
           $query['back'] = urlencode($current_path);
         }
         $query['protected_page'] = $pid;
-        drupal_goto('protected-page', array('query' => $query));
+        backdrop_goto('protected-page', array('query' => $query));
       }
     }
   }

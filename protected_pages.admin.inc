@@ -115,9 +115,9 @@ function protected_pages_get_pages_list() {
  */
 function protected_pages_configure_validate($form, &$form_state) {
 
-  $form_state['normal_path'] = drupal_get_normal_path($form_state['values']['path']);
-  $path_alias = drupal_strtolower(drupal_get_path_alias($form_state['values']['path']));
-  if (!drupal_valid_path($form_state['normal_path'])) {
+  $form_state['normal_path'] = backdrop_get_normal_path($form_state['values']['path']);
+  $path_alias = backdrop_strtolower(backdrop_get_path_alias($form_state['values']['path']));
+  if (!backdrop_valid_path($form_state['normal_path'])) {
     form_set_error('path', t('Please enter a correct path!'));
   }
 
@@ -146,7 +146,7 @@ function protected_pages_configure_submit_callback($form, &$form_state) {
       'path' => check_plain($form_state['values']['path']),
     ))->execute();
 
-    drupal_set_message(t('The protected page settings have been successfully saved.'));
+    backdrop_set_message(t('The protected page settings have been successfully saved.'));
     $form['rules_list']['pages_table']['#markup'] = protected_pages_get_pages_list();
     $form['rules_list']['path']['#value'] = '';
   }
@@ -165,7 +165,7 @@ function protected_pages_edit($form, &$form_state, $pid) {
       ->fetchObject();
 
   if (!isset($protected_page->path)) {
-    drupal_access_denied();
+    backdrop_access_denied();
     exit;
   }
   $form['rules_list'] = array(
@@ -204,8 +204,8 @@ function protected_pages_edit($form, &$form_state, $pid) {
  * Implements hook_validate().
  */
 function protected_pages_edit_validate($form, &$form_state) {
-  $form_state['normal_path'] = drupal_get_normal_path($form_state['values']['path']);
-  if (!drupal_valid_path($form_state['normal_path'])) {
+  $form_state['normal_path'] = backdrop_get_normal_path($form_state['values']['path']);
+  if (!backdrop_valid_path($form_state['normal_path'])) {
     form_set_error('path', t('Please enter a correct path!'));
   }
 
@@ -234,7 +234,7 @@ function protected_pages_edit_submit($form, &$form_state) {
       ->fields($values)
       ->condition('pid', $form_state['values']['pid'])
       ->execute();
-  drupal_set_message(t('The protected page settings have been successfully saved.'));
+  backdrop_set_message(t('The protected page settings have been successfully saved.'));
   $form_state['redirect'] = 'admin/config/system/protected_pages';
 }
 
@@ -266,7 +266,7 @@ function protected_pages_delete_confirm_submit($form, &$form_state) {
         ->condition('pid', $pid)
         ->execute();
 
-    drupal_set_message(t('The path has been successfully deleted from protected pages.'));
+    backdrop_set_message(t('The path has been successfully deleted from protected pages.'));
     $form_state['redirect'] = 'admin/config/system/protected_pages';
   }
 }
@@ -276,7 +276,7 @@ function protected_pages_delete_confirm_submit($form, &$form_state) {
  */
 function protected_pages_send_email($form, &$form_state, $pid) {
   $config = config('protected_pages.settings');
-  $destination = drupal_get_destination();
+  $destination = backdrop_get_destination();
   $form['send_email_box'] = array(
     '#type' => 'fieldset',
     '#title' => t('Send email'),
@@ -369,8 +369,8 @@ function protected_pages_send_email_submit($form, &$form_state) {
   $params['body'] = $form_state['values']['body'];
   $params['protected_page_url'] = url($path, array('absolute' => TRUE));
 
-  drupal_mail($module, $key, $to, $language, $params, $from, $send);
-  drupal_set_message(t('The email has been successfully sent.'));
+  backdrop_mail($module, $key, $to, $language, $params, $from, $send);
+  backdrop_set_message(t('The email has been successfully sent.'));
   $form_state['redirect'] = 'admin/config/system/protected_pages';
 }
 

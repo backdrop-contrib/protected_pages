@@ -41,7 +41,7 @@ function protected_pages_schema() {
  * Implements hook_enable().
  */
 function protected_pages_enable() {
-  drupal_set_message(t('The Protected Pages module has been successfully enabled.
+  backdrop_set_message(t('The Protected Pages module has been successfully enabled.
     Visit the <a href="@permissions">permissions</a>, and set the permissions.',
     array('@permissions' => url('admin/people/permissions', array('fragment' => 'module-protected_pages')))));
 }
