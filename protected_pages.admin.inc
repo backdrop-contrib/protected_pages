@@ -8,40 +8,29 @@
  * Callback function for add protected page.
  */
 function protected_pages_configure($form, &$form_state) {
+  $form['help'] = array(
+    '#type' => 'help',
+    '#markup' => t('A password is required to view a protected page.'),
+  );
 
   $form['rules_list'] = array(
     '#title' => t('Add Protected Page'),
     '#type' => 'fieldset',
-    '#prefix' => '<div id="rules_list">',
-    '#suffix' => '</div>',
-    '#description' => t('A password is required to view a protected page.'),
-  );
-  $form['rules_list']['path'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Relative Path'),
-    '#field_prefix' => url(base_path(), array('absolute' => TRUE)),
-    '#description' => t('Enter either a system path like <em>node/5</em> or an alias like <em>about</em>.'),
-    '#required' => TRUE,
-  );
-  $form['rules_list']['password'] = array(
-    '#title' => t('Password'),
-    '#type' => 'password',
-    '#size' => 25,
-    '#required' => TRUE,
-  );
-  $form['rules_list']['submit'] = array(
-    '#type' => 'submit',
-    '#ajax' => array(
-      'callback' => 'protected_pages_configure_submit_callback',
-      'wrapper' => 'rules_list',
-      'effect' => 'fade',
-      'method' => 'replace',
-      'progress' => array('type' => 'throbber', 'message' => t('Please wait. The data is being saved.')),
-    ),
-    '#value' => t('Protect page'),
   );
 
-  $form['rules_list']['pages_table'] = array(
+  $form = protected_page_form($form, $form_state);
+
+  $form['rules_list']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Protect page'),
+    '#attributes' => array('class' => array('button-primary')),
+  );
+
+  $form['pages_heading'] = array(
+    '#type' => 'markup',
+    '#markup' => '<h2>' . t('Protected Pages') . '</h2>',
+  );
+  $form['pages_table'] = array(
     '#markup' => protected_pages_get_pages_list(),
   );
 
@@ -52,19 +41,17 @@ function protected_pages_configure($form, &$form_state) {
  * Callback to generate list of protected pages.
  */
 function protected_pages_get_pages_list() {
-
   $header = array(
     array(
       'data' => t('#'),
       'width' => '10%',
     ),
     array(
-      'data' => t('Relative Path'),
+      'data' => t('Path'),
       'width' => '60%',
     ),
     array(
       'data' => t('Operations'),
-      'colspan' => 3,
       'width' => '30%',
     ),
   );
@@ -80,16 +67,32 @@ function protected_pages_get_pages_list() {
   $rows = array();
   $count = 1;
   foreach ($result as $data) {
-    $rows[] = array(
-      'data' =>
-      array(
-        $count,
-        $data->path,
-        l(t('Edit'), "admin/config/system/protected_pages/" . $data->pid . "/edit"),
-        l(t('Delete'), 'admin/config/system/protected_pages/' . $data->pid . "/delete"),
-        l(t('Send E-mail'), 'admin/config/system/protected_pages/' . $data->pid . "/send_email"),
-      ),
+    $row = array();
+    $row[] = array('data' => $count);
+    $row[] = array('data' => l($data->path, url($data->path)));
+
+    $links = array();
+    $links['edit'] = array(
+      'title' => t('Edit'),
+      'href' => 'admin/config/system/protected_pages/' . $data->pid . '/edit',
     );
+    $links['delete'] = array(
+      'title' => t('Delete'),
+      'href' => 'admin/config/system/protected_pages/' . $data->pid . '/delete',
+    );
+    $links['email'] = array(
+      'title' => t('Send E-mail'),
+      'href' => 'admin/config/system/protected_pages/' . $data->pid . '/send_email',
+    );
+
+    $operations = array(
+      '#type' => 'operations',
+      '#links' => $links,
+    );
+
+    $row[] = array('data' => $operations);
+
+    $rows[] = $row;
     $count++;
   }
 
@@ -97,11 +100,11 @@ function protected_pages_get_pages_list() {
     array(
       'header' => $header,
       'rows' => $rows,
-      "attributes" => array('width' => "500"),
-      "sticky" => TRUE,
-      "caption" => "",
-      "colgroups" => array(),
-      "empty" => t("No record found!"),
+      'attributes' => array('width' => '500'),
+      'sticky' => TRUE,
+      'caption' => '',
+      'colgroups' => array(),
+      'empty' => t('No record found!'),
     ),
   );
 
@@ -114,7 +117,6 @@ function protected_pages_get_pages_list() {
  * Implements hook_validate().
  */
 function protected_pages_configure_validate($form, &$form_state) {
-
   $form_state['normal_path'] = backdrop_get_normal_path($form_state['values']['path']);
   $path_alias = backdrop_strtolower(backdrop_get_path_alias($form_state['values']['path']));
   if (!backdrop_valid_path($form_state['normal_path'])) {
@@ -135,23 +137,14 @@ function protected_pages_configure_validate($form, &$form_state) {
 /**
  * Ajax submit callback for add protected page form.
  */
-function protected_pages_configure_submit_callback($form, &$form_state) {
+function protected_pages_configure_submit($form, &$form_state) {
+  $path = check_plain($form_state['values']['path']);
+  db_insert('protected_pages')->fields(array(
+    'password' => sha1(trim(check_plain($form_state['values']['password']))),
+    'path' => $path,
+  ))->execute();
 
-  $errors = form_get_errors();
-
-  if (count($errors) < 1) {
-
-    db_insert('protected_pages')->fields(array(
-      'password' => sha1(trim(check_plain($form_state['values']['password']))),
-      'path' => check_plain($form_state['values']['path']),
-    ))->execute();
-
-    backdrop_set_message(t('The protected page settings have been successfully saved.'));
-    $form['rules_list']['pages_table']['#markup'] = protected_pages_get_pages_list();
-    $form['rules_list']['path']['#value'] = '';
-  }
-
-  return $form['rules_list'];
+  backdrop_set_message(t('The page at :path has been successfully protected.', array(':path' => $path)));
 }
 
 /**
@@ -169,25 +162,12 @@ function protected_pages_edit($form, &$form_state, $pid) {
     exit;
   }
   $form['rules_list'] = array(
-    '#title' => t("Edit Protected Page Relative path and password."),
+    '#title' => t('Protected Page settings'),
     '#type' => 'fieldset',
-    '#prefix' => '<div id="rules_list">',
-    '#suffix' => '</div>',
-    '#description' => t('Please enter the relative path and its corresponding
-    password. When user opens this url, they will assked to enter password to
-    view this page. For example, "node/5", "new-events" etc.'),
   );
-  $form['rules_list']['path'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Relative Path'),
-    '#description' => t('Enter relative drupal path. For example, "node/5", "new-events" etc.'),
-    '#required' => TRUE,
-    '#default_value' => $protected_page->path,
-  );
-  $form['rules_list']['password'] = array(
-    '#type' => 'password_confirm',
-    '#size' => 25,
-  );
+
+  $form = protected_page_form($form, $form_state, $protected_page->path);
+
   $form['rules_list']['pid'] = array(
     '#type' => 'hidden',
     '#value' => $pid,
@@ -195,6 +175,29 @@ function protected_pages_edit($form, &$form_state, $pid) {
   $form['rules_list']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save'),
+  );
+
+  return $form;
+}
+
+/**
+ * Helper function to add protected page elements.
+ */
+function protected_page_form($form, &$form_state, $path = NULL) {
+  $form['rules_list']['path'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Path'),
+    '#size' => 30,
+    '#field_prefix' => url(base_path(), array('absolute' => TRUE)),
+    '#description' => t('Enter either a system path (<em>node/1</em>) or a URL alias (<em>about</em>).'),
+    '#required' => TRUE,
+    '#default_value' => $path,
+  );
+  $form['rules_list']['password'] = array(
+    '#title' => t('Password'),
+    '#type' => 'password',
+    '#size' => 25,
+    '#required' => TRUE,
   );
 
   return $form;
@@ -251,7 +254,7 @@ function protected_pages_delete_confirm($form, &$form_state, $pid) {
       ->fetchField();
 
   $form['pid'] = array('#type' => 'hidden', '#value' => $pid);
-  return confirm_form($form, t('Are you sure you want to delete <b>"%path"</b> from protected pages list?', array('%path' => $path)), 'admin/config/system/protected_pages', t('This action cannot be undone.'), t('Delete'), t('Cancel')
+  return confirm_form($form, t('Are you sure you want to delete <b>"%path"</b> from the protected pages list?', array('%path' => $path)), 'admin/config/system/protected_pages', t('This action cannot be undone.'), t('Delete'), t('Cancel')
   );
 }
 
