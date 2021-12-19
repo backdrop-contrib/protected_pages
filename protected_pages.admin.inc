@@ -96,18 +96,17 @@ function protected_pages_get_pages_list() {
     $count++;
   }
 
-  $output = theme('table',
-    array(
-      'header' => $header,
-      'rows' => $rows,
-      'attributes' => array('width' => '500'),
-      'sticky' => TRUE,
-      'caption' => '',
-      'colgroups' => array(),
-      'empty' => t('No record found!'),
-    ),
+  $table_variables = array(
+    'header' => $header,
+    'rows' => $rows,
+    'attributes' => array('width' => '500'),
+    'sticky' => TRUE,
+    'caption' => '',
+    'colgroups' => array(),
+    'empty' => t('No record found!'),
   );
 
+  $output = theme('table', $table_variables);
   $output .= theme('pager', array('tags' => array()));
 
   return $output;
