@@ -119,7 +119,7 @@ function protected_pages_configure_validate($form, &$form_state) {
   $form_state['normal_path'] = backdrop_get_normal_path($form_state['values']['path']);
   $path_alias = backdrop_strtolower(backdrop_get_path_alias($form_state['values']['path']));
   if (!backdrop_valid_path($form_state['normal_path'])) {
-    form_set_error('path', t('Please enter a correct path!'));
+    form_set_error('path', t('The path is either invalid or you do not have access to it.'));
   }
 
   $pid = db_select('protected_pages')
@@ -208,7 +208,7 @@ function protected_page_form($form, &$form_state, $path = NULL) {
 function protected_pages_edit_validate($form, &$form_state) {
   $form_state['normal_path'] = backdrop_get_normal_path($form_state['values']['path']);
   if (!backdrop_valid_path($form_state['normal_path'])) {
-    form_set_error('path', t('Please enter a correct path!'));
+    form_set_error('path', t('The path is either invalid or you do not have access to it.'));
   }
 
   $pid = db_select('protected_pages')
