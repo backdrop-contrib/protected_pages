@@ -57,6 +57,18 @@ function protected_pages_enter_password($form, &$form_state) {
 function protected_pages_enter_password_validate($form, &$form_state) {
   $config = config('protected_pages.settings');
 
+  if (strlen($form_state['values']['password'])) {
+    // Register an IP-based password attempt event.
+    flood_register_event('protected_pages_password_attempt');
+    // Do not allow any submission from the current user's IP if the limit has
+    // been reached. Default is 50 failed attempts allowed in one hour. We have
+    // a reasonably high limit since there may be only one apparent IP for all
+    // people at an institution.
+    if (!flood_is_allowed('protected_pages_password_attempt', 50)) {
+      form_set_error('name', t('Too many password attempts from this IP.'));
+    }
+  }
+
   $password = sha1(trim(check_plain($form_state['values']['password'])));
   $global_password_setting = $config->get('protected_pages_user_global_password');
   if ($global_password_setting == 'per_page_password') {
@@ -68,7 +80,6 @@ function protected_pages_enter_password_validate($form, &$form_state) {
         ->execute()
         ->fetchField();
     if (!$pid) {
-
       form_set_error('password', $config->get('protected_pages_incorrect_password_msg'));
     }
   }
@@ -98,6 +109,7 @@ function protected_pages_enter_password_validate($form, &$form_state) {
  * Implements hook_submit().
  */
 function protected_pages_enter_password_submit($form, &$form_state) {
+  flood_clear_event('protected_pages_password_attempt');
   $_SESSION['_protected_page']['passwords'][$form_state['values']['protected_page_pid']]['request_time'] = REQUEST_TIME;
   $session_expire_time = config_get('protected_pages.settings', 'protected_pages_session_expire_time');
   if ($session_expire_time) {
