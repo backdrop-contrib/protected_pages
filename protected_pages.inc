@@ -64,8 +64,11 @@ function protected_pages_enter_password_validate($form, &$form_state) {
     // been reached. Default is 50 failed attempts allowed in one hour. We have
     // a reasonably high limit since there may be only one apparent IP for all
     // people at an institution.
-    if (!flood_is_allowed('protected_pages_password_attempt', 50)) {
-      form_set_error('name', t('Too many password attempts from this IP.'));
+    $limit = $config->get('protected_pages_flood_limit');
+    $window = $config->get('protected_pages_flood_window');
+    if (!flood_is_allowed('protected_pages_password_attempt', $limit, $window)) {
+      form_set_error('password', t('Too many password attempts from this IP.'));
+      return;
     }
   }
 

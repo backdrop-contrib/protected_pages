@@ -9,5 +9,7 @@
     "protected_pages_description": "The page you are trying to view is password protected. Please enter the password below to proceed.",
     "protected_pages_password_label": "Enter Password",
     "protected_pages_submit_button_text": "Authenticate",
-    "protected_pages_incorrect_password_msg": "Incorrect password!"
+    "protected_pages_incorrect_password_msg": "Incorrect password!",
+    "protected_pages_flood_limit": 50,
+    "protected_pages_flood_window": 3600
 }

@@ -46,3 +46,13 @@ function protected_pages_enable() {
     Visit the <a href="@permissions">permissions</a>, and set the permissions.',
     array('@permissions' => url('admin/people/permissions', array('fragment' => 'module-protected_pages')))));
 }
+
+/**
+ * Adds new values to protected pages configuration.
+ */
+function protected_pages_update_1001(&$sandbox) {
+  config_set('protected_pages.settings', 'protected_pages_flood_limit', '50');
+  config_set('protected_pages.settings', 'protected_pages_flood_window', '3600');
+
+  return t('Added Protected Pages settings for flood control.');
+}
